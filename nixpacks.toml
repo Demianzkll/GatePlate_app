@@ -4,5 +4,8 @@ aptPkgs = [
     "libglib2.0-0",
     "libxcb1",
     "libx11-6",
+    "libxext6",
+    "libsm6",
+    "libice6",
     "tesseract-ocr"
 ]
