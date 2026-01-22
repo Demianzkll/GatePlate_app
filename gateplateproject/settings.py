@@ -85,6 +85,10 @@ WSGI_APPLICATION = 'gateplateproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
+
+import dj_database_url
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -98,6 +102,24 @@ DATABASES = {
         },
     }
 }
+
+
+# 2. Автоматичне підключення DATABASE_URL від Render/Aiven
+db_from_env = dj_database_url.config(conn_max_age=600)
+
+if db_from_env:
+    # Оновлюємо основні параметри (HOST, USER, PASSWORD...)
+    DATABASES['default'].update(db_from_env)
+    
+    # 1. Переконуємося, що ключ OPTIONS існує (якщо немає - створюємо порожній {})
+    DATABASES['default'].setdefault('OPTIONS', {})
+    
+    # 2. Додаємо SSL
+    DATABASES['default']['OPTIONS'].update({
+        'ssl': {
+            'ca': os.path.join(BASE_DIR, 'ca.pem')
+        }
+    })
 
 
 
