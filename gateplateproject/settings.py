@@ -87,40 +87,43 @@ WSGI_APPLICATION = 'gateplateproject.wsgi.application'
 
 
 
+import os
 import dj_database_url
+from pathlib import Path
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'gateplatedb',      
-        'USER': 'root',             
-        'PASSWORD': 'shahtar2008',  
-        'HOST': 'localhost',        
-        'PORT': '3306',             
-        'OPTIONS': {
-            'charset': 'cp1251',
-        },
-    }
-}
+# Визначаємо шлях до проєкту
+BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# 2. Автоматичне підключення DATABASE_URL від Render/Aiven
+# 1. Спробуємо отримати конфігурацію з DATABASE_URL (яку ми вказали на Render)
 db_from_env = dj_database_url.config(conn_max_age=600)
 
 if db_from_env:
-    # Оновлюємо основні параметри (HOST, USER, PASSWORD...)
-    DATABASES['default'].update(db_from_env)
-    
-    # 1. Переконуємося, що ключ OPTIONS існує (якщо немає - створюємо порожній {})
-    DATABASES['default'].setdefault('OPTIONS', {})
-    
-    # 2. Додаємо SSL
-    DATABASES['default']['OPTIONS'].update({
+    # ЯКЩО МИ НА СЕРВЕРІ (Render + Aiven)
+    DATABASES = {
+        'default': db_from_env
+    }
+    # Додаємо SSL-сертифікат та кодування для хмари
+    DATABASES['default']['OPTIONS'] = {
+        'charset': 'utf8mb4',
         'ssl': {
             'ca': os.path.join(BASE_DIR, 'ca.pem')
         }
-    })
-
+    }
+else:
+    # ЯКЩО МИ ВДОМА (Локальна розробка)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'gateplatedb',      
+            'USER': 'root',             
+            'PASSWORD': 'shahtar2008',  
+            'HOST': 'localhost',        
+            'PORT': '3306',             
+            'OPTIONS': {
+                'charset': 'cp1251',
+            },
+        }
+    }
 
 
 
